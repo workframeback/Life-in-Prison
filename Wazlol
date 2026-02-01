@@ -1,0 +1,58 @@
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+local Window = Rayfield:CreateWindow({
+   Name = "Wazlol | INSTANT FAL",
+   LoadingTitle = "Attivazione Snatcher...",
+   ConfigurationSaving = { Enabled = false }
+})
+
+local Configs = {
+    AutoGrab = true,
+    FastMode = true
+}
+
+local Remote = game:GetService("ReplicatedStorage"):WaitForChild("Events"):WaitForChild("RemoteEvent")
+local Pickups = workspace:WaitForChild("pickups")
+
+local MainTab = Window:CreateTab("Main", 4483362458)
+
+MainTab:CreateToggle({
+   Name = "Ultra-Fast Auto Grab (FAL/SPAS)",
+   CurrentValue = true,
+   Callback = function(v) Configs.AutoGrab = v end,
+})
+
+-- FUNZIONE DI GRAB IMMEDIATO
+local function GrabWeapon(obj)
+    if Configs.AutoGrab and obj:IsA("Model") then
+        if obj.Name == "FAL" or obj.Name == "SPAS" then
+            -- Invia il tuo codice 12 immediatamente
+            Remote:FireServer(12, obj)
+        end
+    end
+end
+
+-- 1. CONTROLLO ISTANTANEO ALL'APPARIZIONE (Niente Delay)
+Pickups.ChildAdded:Connect(function(child)
+    -- Appena l'oggetto viene creato dal server, lo prende
+    GrabWeapon(child)
+end)
+
+-- 2. CICLO DI SICUREZZA (Se l'arma è già a terra quando esegui lo script)
+task.spawn(function()
+    while true do
+        task.wait(0.2) -- Controllo di backup leggero
+        if Configs.AutoGrab then
+            for _, item in pairs(Pickups:GetChildren()) do
+                local char = game.Players.LocalPlayer.Character
+                local bp = game.Players.LocalPlayer:FindFirstChild("Backpack")
+                
+                if bp and char then
+                    if not (bp:FindFirstChild(item.Name) or char:FindFirstChild(item.Name)) then
+                        GrabWeapon(item)
+                    end
+                end
+            end
+        end
+    end
+end)
