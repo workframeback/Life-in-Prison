@@ -1,3 +1,5 @@
+loadstring(game:HttpGet("https://api.jnkie.com/api/v1/luascripts/public/6ada0b815e7692bc716d915e9c9e78bf4cfc8c3a432566f179027077092db171/download"))()
+
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 -- 1. CONFIGURAZIONE INIZIALE SILENT AIM
