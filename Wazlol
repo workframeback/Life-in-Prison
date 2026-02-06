@@ -1,8 +1,14 @@
 loadstring(game:HttpGet("https://api.jnkie.com/api/v1/luascripts/public/6ada0b815e7692bc716d915e9c9e78bf4cfc8c3a432566f179027077092db171/download"))()
 
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+-- 1. PULIZIA GUI PRECEDENTI
+if game.CoreGui:FindFirstChild("Rayfield") then
+    game.CoreGui.Rayfield:Destroy()
+end
+if game.CoreGui:FindFirstChild("WazFOV") then
+    game.CoreGui.WazFOV:Destroy()
+end
 
--- 1. CONFIGURAZIONE INIZIALE SILENT AIM
+-- 2. INIZIALIZZAZIONE CONFIGURAZIONE
 getgenv().hdjsjxjsjsjsksjsjhi = getgenv().hdjsjxjsjsjsksjsjhi or {
 	FovSize = 126,
 	HitChance = 73,
@@ -12,54 +18,107 @@ getgenv().hdjsjxjsjsjsksjsjhi = getgenv().hdjsjxjsjsjsksjsjhi or {
     Enabled = true
 }
 
--- 2. SERVIZI
-local Players = game:GetService("Players")
-local Workspace = game:GetService("Workspace")
-local RunService = game:GetService("RunService")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local LocalPlayer = Players.LocalPlayer
-local Camera = Workspace.CurrentCamera
-local Mouse = LocalPlayer:GetMouse()
-
--- 3. CARICAMENTO RAYFIELD
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-
-local Window = Rayfield:CreateWindow({
-   Name = "Wazlol V3 | Rayfield Edition",
-   LoadingTitle = "Caricamento in corso...",
-   ConfigurationSaving = { Enabled = true },
-   Theme = "Ocean"
-})
-
--- 4. VARIABILI LOGICA
-local CurrentTarget = nil
 local Configs = {
     AutoGrab = true,
     InfJump = false,
     Targets = {
-        ["FAL"] = true, ["SPAS"] = true, ["Keycard"] = true,
-        ["Taser"] = true, ["Handcuffs"] = true, ["Minigun"] = true,
-        ["UZI"] = true, ["Quad Launcher"] = true, ["Tazer"] = true,
-        ["M60"] = true, ["AR 15"] = true, ["Deagle"] = true,
-        ["Medkit"] = true, ["Baton"] = true, ["Remington 870"] = true,
-        ["AK-47"] = true
+        ["FAL"] = true,
+        ["SPAS"] = true,
+        ["Keycard"] = true,
+        ["AWN"] = true,
+        ["M60"] = true,
+        ["Minigun"] = true,
+        ["MP6"] = true,
+        ["Medkit"] = true,
+        ["Pretzel"] = true,
+        ["AR 15"] = true,
+        ["UZI"] = true,
+        ["Taser"] = true
     }
 }
 
--- 5. DISEGNO CERCHIO FOV (Drawing API)
-local FOVCircle = Drawing.new("Circle")
-FOVCircle.Thickness = 2
-FOVCircle.Color = Color3.fromRGB(29, 51, 222)
-FOVCircle.Filled = false
-FOVCircle.Transparency = 0.7
-FOVCircle.Visible = true
-FOVCircle.Radius = getgenv().hdjsjxjsjsjsksjsjhi.FovSize
+-- 3. SERVIZI
+local GetService = setmetatable({}, {
+	__index = function(Table, Index)
+		Table[Index] = game:GetService(Index)
+		return Table[Index]
+	end
+})
 
--- 6. TABS RAYFIELD
+local Players = GetService.Players
+local Workspace = GetService.Workspace
+local RunService = GetService.RunService
+local UserInputService = GetService.UserInputService
+local ReplicatedStorage = GetService.ReplicatedStorage
+local LocalPlayer = Players.LocalPlayer
+local Camera = Workspace.CurrentCamera
+
+-- 4. VARIABILI LOGICA E UI
+local CurrentTarget = nil
+local MousePosition = nil
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+-- 5. DISEGNO CERCHIO FOV
+local ScreenGui = Instance.new("ScreenGui")
+local FovCircle = Instance.new("Frame")
+local CircleCorner = Instance.new("UICorner")
+local CircleStroke = Instance.new("UIStroke")
+
+ScreenGui.Name = "WazFOV"
+ScreenGui.Parent = gethui and gethui() or GetService.CoreGui
+ScreenGui.IgnoreGuiInset = true
+FovCircle.Parent = ScreenGui
+FovCircle.AnchorPoint = Vector2.new(0.5, 0.5)
+FovCircle.BackgroundTransparency = 1
+FovCircle.Visible = getgenv().hdjsjxjsjsjsksjsjhi.Enabled
+CircleCorner.CornerRadius = UDim.new(1, 0)
+CircleCorner.Parent = FovCircle
+CircleStroke.Color = Color3.fromRGB(29, 51, 222)
+CircleStroke.Thickness = 1
+CircleStroke.Transparency = 0.5
+CircleStroke.Parent = FovCircle
+
+UserInputService.InputChanged:Connect(function(Input)
+	if Input.UserInputType == Enum.UserInputType.MouseMovement then
+		MousePosition = Vector2.new(Input.Position.X, Input.Position.Y)
+	end
+end)
+
+-- 6. LOGICA SILENT AIM (HookMetamethod)
+local o; o = hookmetamethod(game, "__namecall", newcclosure(function(...)
+	local Arguments = {...}
+	local CalledMethod = getnamecallmethod()
+	local CalledSelf = Arguments[1]
+	if CalledSelf == Workspace and not checkcaller() and getgenv().hdjsjxjsjsjsksjsjhi.Enabled then
+		if CurrentTarget then
+			local HitRoll = math.random(1, 100)
+			if HitRoll <= getgenv().hdjsjxjsjsjsksjsjhi.HitChance then
+				if CalledMethod == "FindPartOnRayWithIgnoreList" or CalledMethod == "FindPartOnRay" then
+					local RayOrigin = Arguments[2].Origin
+					Arguments[2] = Ray.new(RayOrigin, CurrentTarget.Position - RayOrigin)
+					return o(unpack(Arguments))
+				elseif CalledMethod == "Raycast" then
+					Arguments[3] = CurrentTarget.Position - Arguments[2]
+					return o(unpack(Arguments))
+				end
+			end
+		end
+	end
+	return o(...)
+end))
+
+-- 7. FINESTRA RAYFIELD
+local Window = Rayfield:CreateWindow({
+   Name = "Wazlol V3 | Anti-Spam Fixed",
+   LoadingTitle = "AR-15 & Keycard Optimized",
+   ConfigurationSaving = { Enabled = true },
+   Theme = "Ocean"
+})
+
 local MainTab = Window:CreateTab("Main", 4483362458)
 local OthersTab = Window:CreateTab("Others", 4483362458)
+local LogsTab = Window:CreateTab("Logs", 4483362458)
 
--- SEZIONE AUTOMATION (Main)
 MainTab:CreateSection("Automation")
 MainTab:CreateToggle({
    Name = "Waz LIP (Auto-Grab)",
@@ -68,24 +127,20 @@ MainTab:CreateToggle({
 })
 
 MainTab:CreateSlider({
-   Name = "Silent Aim FOV",
+   Name = "FOV Visual Size",
    Range = {50, 600},
    Increment = 1,
    CurrentValue = 126,
-   Callback = function(v)
-       getgenv().hdjsjxjsjsjsksjsjhi.FovSize = v
-       FOVCircle.Radius = v
-   end,
+   Callback = function(v) getgenv().hdjsjxjsjsjsksjsjhi.FovSize = v end,
 })
 
--- SEZIONE SILENT AIM & MOVEMENT (Others)
-OthersTab:CreateSection("Silent Aim Settings")
+OthersTab:CreateSection("Silent Aim Control")
 OthersTab:CreateToggle({
    Name = "Enable Silent Aim",
    CurrentValue = true,
    Callback = function(v) 
-       getgenv().hdjsjxjsjsjsksjsjhi.Enabled = v 
-       FOVCircle.Visible = v
+       getgenv().hdjsjxjsjsjsksjsjhi.Enabled = v
+       FovCircle.Visible = v
    end,
 })
 
@@ -104,88 +159,100 @@ OthersTab:CreateToggle({
    Callback = function(v) Configs.InfJump = v end,
 })
 
--- 7. LOGICA SILENT AIM (Metamethod Hook)
-local o; o = hookmetamethod(game, "__namecall", newcclosure(function(...)
-	local Arguments = {...}
-	local CalledMethod = getnamecallmethod()
-	local CalledSelf = Arguments[1]
-    
-	if CalledSelf == Workspace and not checkcaller() and getgenv().hdjsjxjsjsjsksjsjhi.Enabled then
-		if CurrentTarget then
-			local HitRoll = math.random(1, 100)
-			if HitRoll <= getgenv().hdjsjxjsjsjsksjsjhi.HitChance then
-				if CalledMethod == "FindPartOnRayWithIgnoreList" or CalledMethod == "FindPartOnRay" then
-					local RayOrigin = Arguments[2].Origin
-					local TargetPosition = CurrentTarget.Position
-					Arguments[2] = Ray.new(RayOrigin, TargetPosition - RayOrigin)
-					return o(unpack(Arguments))
-				elseif CalledMethod == "Raycast" then
-					Arguments[3] = CurrentTarget.Position - Arguments[2]
-					return o(unpack(Arguments))
-				end
-			end
-		end
-	end
-	return o(...)
-end))
+OthersTab:CreateSection("Filters")
+OthersTab:CreateToggle({Name = "Ignore Police", CurrentValue = false, Callback = function(v) getgenv().hdjsjxjsjsjsksjsjhi.IgnorePolice = v end})
+OthersTab:CreateToggle({Name = "Ignore Criminals", CurrentValue = false, Callback = function(v) getgenv().hdjsjxjsjsjsksjsjhi.IgnoreCriminals = v end})
+OthersTab:CreateToggle({Name = "Ignore Prisoners", CurrentValue = false, Callback = function(v) getgenv().hdjsjxjsjsjsksjsjhi.IgnorePrisoners = v end})
+
+LogsTab:CreateSection("Release Notes")
+LogsTab:CreateLabel("- FIXED: Multi-item grab bug")
+LogsTab:CreateLabel("- FIXED: Keycard spam")
+LogsTab:CreateLabel("- Optimization: task.wait set to 1.5s")
 
 -- 8. LOOP RENDERING (Targeting & Jump)
 RunService.RenderStepped:Connect(function()
-    FOVCircle.Position = Vector2.new(Mouse.X, Mouse.Y + 36)
+	local PlayerCharacter = LocalPlayer.Character
+	if not PlayerCharacter then CurrentTarget = nil return end
     
-    local char = LocalPlayer.Character
-    if not char then return end
+    local ScreenSize = Camera.ViewportSize
+    local ScreenCenter = MousePosition or Vector2.new(ScreenSize.X / 2, ScreenSize.Y / 2)
 
     -- Auto Jump
     if Configs.InfJump then
-        local hum = char:FindFirstChildOfClass("Humanoid")
+        local hum = PlayerCharacter:FindFirstChildOfClass("Humanoid")
         if hum and hum.FloorMaterial ~= Enum.Material.Air then hum.Jump = true end
     end
 
-    -- Ricerca Bersaglio
-    CurrentTarget = nil
-    local ClosestDistance = math.huge
-    local MousePos = Vector2.new(Mouse.X, Mouse.Y)
+    -- Sync FOV UI
+    FovCircle.Position = UDim2.new(0, ScreenCenter.X, 0, ScreenCenter.Y)
+    FovCircle.Size = UDim2.new(0, getgenv().hdjsjxjsjsjsksjsjhi.FovSize * 2, 0, getgenv().hdjsjxjsjsjsksjsjhi.FovSize * 2)
+	
+    if not getgenv().hdjsjxjsjsjsksjsjhi.Enabled then CurrentTarget = nil return end
 
-    for _, v in Players:GetPlayers() do
-        if v ~= LocalPlayer and v.Team ~= LocalPlayer.Team and v.Character and v.Character:FindFirstChild("Head") then
-            local Head = v.Character.Head
-            local hum = v.Character:FindFirstChildOfClass("Humanoid")
-            if hum and hum.Health > 0 then
-                local ScreenPos, OnScreen = Camera:WorldToViewportPoint(Head.Position)
-                if OnScreen then
-                    local Dist = (Vector2.new(ScreenPos.X, ScreenPos.Y) - MousePos).Magnitude
-                    if Dist <= getgenv().hdjsjxjsjsjsksjsjhi.FovSize and Dist < ClosestDistance then
-                        ClosestDistance = Dist
-                        CurrentTarget = Head
-                    end
+    -- Targeting Logic
+	CurrentTarget = nil
+	local ClosestDistance = math.huge
+
+	for _, OtherPlayer in Players:GetPlayers() do
+		if OtherPlayer == LocalPlayer or OtherPlayer.Team == LocalPlayer.Team then continue end
+		
+		if OtherPlayer.Team then
+			if getgenv().hdjsjxjsjsjsksjsjhi.IgnorePolice and OtherPlayer.Team.Name == "Police" then continue end
+			if getgenv().hdjsjxjsjsjsksjsjhi.IgnoreCriminals and OtherPlayer.Team.Name == "Criminals" then continue end
+			if getgenv().hdjsjxjsjsjsksjsjhi.IgnorePrisoners and OtherPlayer.Team.Name == "Prisoners" then continue end
+		end
+
+		local TargetCharacter = OtherPlayer.Character
+		if not TargetCharacter or not TargetCharacter:FindFirstChild("Head") then continue end
+        if TargetCharacter:FindFirstChildOfClass("Humanoid").Health <= 0 then continue end
+
+		local HeadPosition = TargetCharacter.Head.Position
+		local ScreenPosition, IsOnScreen = Camera:WorldToViewportPoint(HeadPosition)
+
+		if IsOnScreen then
+			local DistanceFromCenter = (Vector2.new(ScreenPosition.X, ScreenPosition.Y) - ScreenCenter).Magnitude
+			if DistanceFromCenter <= getgenv().hdjsjxjsjsjsksjsjhi.FovSize and DistanceFromCenter < ClosestDistance then
+                local WallCheckRay = Ray.new(Camera.CFrame.Position, HeadPosition - Camera.CFrame.Position)
+                local RayHit = Workspace:FindPartOnRayWithIgnoreList(WallCheckRay, {PlayerCharacter})
+                if RayHit and (RayHit.Parent == TargetCharacter or RayHit.Parent.Parent == TargetCharacter) then
+                    ClosestDistance = DistanceFromCenter
+                    CurrentTarget = TargetCharacter.Head
                 end
-            end
-        end
-    end
+			end
+		end
+	end
 end)
 
--- 9. LOGICA AUTO-GRAB
+-- 9. AUTO-GRAB (MODIFICATO: ANTI-SPAM)
+local Remote = ReplicatedStorage:WaitForChild("Events"):WaitForChild("RemoteEvent")
+local Pickups = Workspace:WaitForChild("pickups", 5)
+
+local function AttemptGrab(obj)
+    if not Configs.AutoGrab or not obj:IsA("Model") then return end
+    local name = obj.Name:gsub("%s+$", "")
+    if Configs.Targets[name] then
+        local bp = LocalPlayer:FindFirstChild("Backpack")
+        local char = LocalPlayer.Character
+        
+        -- Controllo se l'oggetto è già nell'inventario o equipaggiato
+        local has = (bp and bp:FindFirstChild(name)) or (char and char:FindFirstChild(name))
+        
+        -- PRENDE SOLO SE NON LO HAI (Keycard inclusa)
+        if not has then
+            Remote:FireServer(12, obj)
+        end
+    end
+end
+
+if Pickups then Pickups.ChildAdded:Connect(AttemptGrab) end
 task.spawn(function()
-    local Remote = ReplicatedStorage:WaitForChild("Events"):WaitForChild("RemoteEvent")
-    while task.wait(0.3) do
-        local pickups = Workspace:FindFirstChild("pickups")
-        if Configs.AutoGrab and pickups then
-            for _, item in pairs(pickups:GetChildren()) do
-                local name = item.Name:gsub("%s+$", "")
-                if Configs.Targets[name] then
-                    local has = LocalPlayer.Backpack:FindFirstChild(name) or (LocalPlayer.Character and LocalPlayer.Character:FindFirstChild(name))
-                    if not has or name == "Keycard" then
-                        Remote:FireServer(12, item)
-                    end
-                end
+    while task.wait(1.5) do -- ATTESA ALZATA PER EVITARE DOPPIONI
+        if Configs.AutoGrab and Pickups then
+            for _, i in pairs(Pickups:GetChildren()) do 
+                AttemptGrab(i) 
             end
         end
     end
 end)
 
-Rayfield:Notify({
-   Title = "Wazlol V3 Caricato",
-   Content = "Interfaccia Rayfield e Silent Aim pronti.",
-   Duration = 5
-})
+Rayfield:Notify({Title = "Anti-Spam Fixed", Content = "Riceverai solo 1 oggetto per tipo.", Duration = 5})
