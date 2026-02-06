@@ -110,7 +110,7 @@ end))
 -- 7. FINESTRA RAYFIELD
 local Window = Rayfield:CreateWindow({
    Name = "Wazlol V3",
-   LoadingTitle = "AR-15 & Keycard Optimized",
+   LoadingTitle = "Loading Scirpt...",
    ConfigurationSaving = { Enabled = true },
    Theme = "Ocean"
 })
