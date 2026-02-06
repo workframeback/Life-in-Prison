@@ -109,7 +109,7 @@ end))
 
 -- 7. FINESTRA RAYFIELD
 local Window = Rayfield:CreateWindow({
-   Name = "Wazlol V3 | Anti-Spam Fixed",
+   Name = "Wazlol V3",
    LoadingTitle = "AR-15 & Keycard Optimized",
    ConfigurationSaving = { Enabled = true },
    Theme = "Ocean"
@@ -167,7 +167,7 @@ OthersTab:CreateToggle({Name = "Ignore Prisoners", CurrentValue = false, Callbac
 LogsTab:CreateSection("Release Notes")
 LogsTab:CreateLabel("- FIXED: Multi-item grab bug")
 LogsTab:CreateLabel("- FIXED: Keycard spam")
-LogsTab:CreateLabel("- Optimization: task.wait set to 1.5s")
+LogsTab:CreateLabel("- FIXED: Everything")
 
 -- 8. LOOP RENDERING (Targeting & Jump)
 RunService.RenderStepped:Connect(function()
@@ -255,4 +255,4 @@ task.spawn(function()
     end
 end)
 
-Rayfield:Notify({Title = "Anti-Spam Fixed", Content = "Riceverai solo 1 oggetto per tipo.", Duration = 5})
+Rayfield:Notify({Title = "Anti-Spam Fixed", Content = "FIXED ALL CHECK LOGS.", Duration = 5})
