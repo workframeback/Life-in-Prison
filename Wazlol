@@ -1,5 +1,3 @@
-loadstring(game:HttpGet("https://api.jnkie.com/api/v1/luascripts/public/6ada0b815e7692bc716d915e9c9e78bf4cfc8c3a432566f179027077092db171/download"))()
-
 -- 1. PULIZIA GUI PRECEDENTI
 if game.CoreGui:FindFirstChild("Rayfield") then
     game.CoreGui.Rayfield:Destroy()
