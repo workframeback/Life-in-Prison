@@ -54,7 +54,7 @@ setclipboard("https://discord.gg/qwWGTqv4yu")
 
 -- 5. RAYFIELD WINDOW (PURPLE EDITION)
 local Window = Rayfield:CreateWindow({
-   Name = "Vextos V3 | Purple Edition",
+   Name = "Vextos V3",
    LoadingTitle = "Loading Amethyst System...",
    LoadingSubtitle = "by Vextos",
    ConfigurationSaving = {
@@ -71,8 +71,8 @@ local Window = Rayfield:CreateWindow({
    KeySystem = true,
    KeySettings = {
       Title = "Vextos V3 | Access Control",
-      Subtitle = "Join Discord for the Purple Key",
-      Note = "Key: wastedtime (Copied to clipboard)",
+      Subtitle = "Join Discord for the Key",
+      Note = "Join discord",
       FileName = "VextosKey", 
       SaveKey = true, 
       GrabKeyFromSite = false, 
@@ -86,7 +86,7 @@ local FovCircle = Instance.new("Frame")
 local CircleCorner = Instance.new("UICorner")
 local CircleStroke = Instance.new("UIStroke")
 
-ScreenGui.Name = "WazFOV"
+ScreenGui.Name = "VextosFOV"
 ScreenGui.Parent = gethui and gethui() or GetService.CoreGui
 ScreenGui.IgnoreGuiInset = true
 FovCircle.Parent = ScreenGui
